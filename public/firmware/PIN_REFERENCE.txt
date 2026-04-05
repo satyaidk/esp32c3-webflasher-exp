@@ -1,0 +1,303 @@
+╔══════════════════════════════════════════════════════════════════════════════╗
+║                   SMARTCLOCK ESP32-C3 SUPER MINI PIN REFERENCE               ║
+║                                                                              ║
+║                         OLED I2C & TOUCH SENSOR                             ║
+╚══════════════════════════════════════════════════════════════════════════════╝
+
+QUICK CONNECTION GUIDE
+═══════════════════════════════════════════════════════════════════════════════
+
+┌────────────────────────────────────────────────────────────────────────────┐
+│ OLED DISPLAY (SSD1306) - I2C CONNECTION                                    │
+└────────────────────────────────────────────────────────────────────────────┘
+
+    OLED Pin 1 (VCC)  ──────────→ ESP32-C3 3.3V
+    OLED Pin 2 (GND)  ──────────→ ESP32-C3 GND
+    OLED Pin 3 (SDA)  ──────────→ ESP32-C3 GPIO20 (IO20)
+    OLED Pin 4 (SCL)  ──────────→ ESP32-C3 GPIO21 (IO21)
+
+COLORS (if using breadboard jumpers):
+    OLED VCC (1)  = RED wire
+    OLED GND (2)  = BLACK wire
+    OLED SDA (3)  = YELLOW wire
+    OLED SCL (4)  = GREEN wire
+
+I2C ADDRESS: 0x3C (decimal 60)
+VOLTAGE: 3.3V
+CURRENT: ~20 mA typical
+
+┌────────────────────────────────────────────────────────────────────────────┐
+│ TOUCH SENSOR - GPIO INPUT                                                  │
+└────────────────────────────────────────────────────────────────────────────┘
+
+    Touch Sensor Pin 1 (VCC) ──→ ESP32-C3 3.3V
+    Touch Sensor Pin 2 (GND) ──→ ESP32-C3 GND
+    Touch Sensor Pin 3 (I/O) ──→ ESP32-C3 GPIO1 (IO1)
+
+COLORS (if using breadboard jumpers):
+    Touch VCC (1) = RED wire
+    Touch GND (2) = BLACK wire
+    Touch I/O (3) = BLUE wire
+
+GPIO PIN: 1
+VOLTAGE: 3.3V
+RESPONSE TIME: <10 ms
+
+╔══════════════════════════════════════════════════════════════════════════════╗
+║                         ESP32-C3 PINOUT (TOP VIEW)                          ║
+╚══════════════════════════════════════════════════════════════════════════════╝
+
+          ╔════════════════════════╗
+          ║    USB-C Port (Top)    ║
+          ╚════════════════════════╝
+
+    ┌──────────────────────────────────────────────┐
+    │  GND   RX    TX    IO9   IO8                 │
+    │  5V    IO3   IO4   IO2   IO7                 │
+    │  EN    IO5   IO6   IO1 * IO0                 │
+    │  GND   IO21†(SCL) IO20†(SDA)                 │
+    └──────────────────────────────────────────────┘
+
+    * IO1 = Touch Sensor input
+    † IO20 & IO21 = I2C (OLED)
+
+
+POWER RAILS:
+═════════════════════════════════════════════════════════════════════════════
+
+    3.3V Rail (Regulated from USB 5V):
+        ├─→ OLED Display VCC
+        ├─→ Touch Sensor VCC
+        └─→ Any other 3.3V devices
+
+    GND Rail (Common Ground):
+        ├─→ OLED Display GND
+        ├─→ Touch Sensor GND
+        └─→ MUST connect to USB GND
+
+
+I2C CONNECTIONS (OLED):
+═════════════════════════════════════════════════════════════════════════════
+
+    GPIO20 (SDA) ──[Optional 4.7K Ω Resistor]── 3.3V
+    GPIO21 (SCL) ──[Optional 4.7K Ω Resistor]── 3.3V
+
+    Note: Most breakout boards have built-in pull-ups.
+          Only add resistors if I2C is unreliable.
+
+
+GPIO INPUT (TOUCH SENSOR):
+═════════════════════════════════════════════════════════════════════════════
+
+    GPIO1 ← Touch Sensor I/O pin
+    
+    Firmware polls GPIO1 for high/low transitions.
+    Touch detected = high signal (~3.3V)
+    No touch = low signal (~0V)
+
+
+FIRMWARE PIN DEFINITIONS:
+═════════════════════════════════════════════════════════════════════════════
+
+    In src/main.cpp:
+
+    #define TOUCH_PIN 1         // Touch sensor GPIO
+    #define SDA_PIN 20          // I2C data line
+    #define SCL_PIN 21          // I2C clock line
+
+    To change pins, edit these #define statements and rebuild.
+
+
+USB-C POWER:
+═════════════════════════════════════════════════════════════════════════════
+
+    USB 5V (max 500 mA) ──→ Internal Regulator ──→ 3.3V output
+    USB GND ──→ GND rail (must connect for all components)
+
+    Total Power Budget:
+    • ESP32-C3:   ~100 mA (peaks to 250 mA WiFi transmit)
+    • OLED:       ~20 mA (full brightness)
+    • Touch:      ~5 mA
+    ─────────────────────
+    TOTAL:        ~125 mA (sufficient, USB provides 500 mA)
+
+
+BREADBOARD LAYOUT EXAMPLE:
+═════════════════════════════════════════════════════════════════════════════
+
+    +5V ┌─────────────────────────────────────┐ GND
+        │                                     │
+        │    ESP32-C3    OLED     Touch       │
+        │    ┌─────────┐ ┌─────┐ ┌─────┐     │
+    +3.3V→ │ 3.3V    │ │VCC │ │VCC │     │
+     GND→ │ GND     │ │GND │ │GND │     │
+    IO20→ │ 20 (SDA)│→│SDA │         │     │
+    IO21→ │ 21 (SCL)│→│SCL │         │     │
+     IO1→ │ 1       │         │I/O │     │
+        │ └─────────┘ └─────┘ └─────┘     │
+        └─────────────────────────────────────┘
+
+
+VERIFICATION CHECKLIST:
+═════════════════════════════════════════════════════════════════════════════
+
+Before flashing firmware:
+
+    [ ] OLED VCC connected to 3.3V
+    [ ] OLED GND connected to GND
+    [ ] OLED SDA connected to GPIO20
+    [ ] OLED SCL connected to GPIO21
+    [ ] Touch VCC connected to 3.3V
+    [ ] Touch GND connected to GND
+    [ ] Touch I/O connected to GPIO1
+    [ ] All connections are secure (no loose wires)
+    [ ] No crossed wires
+    [ ] No reversed polarity
+    [ ] USB cable provides power (test with multimeter if unsure)
+    [ ] No solder bridges on pins
+    [ ] All pull-up resistors in place (if needed)
+
+
+COMMON ISSUES & SOLUTIONS:
+═════════════════════════════════════════════════════════════════════════════
+
+Issue: OLED won't display
+  → Check GPIO20 (SDA) and GPIO21 (SCL) are connected
+  → Verify I2C address is 0x3C (use I2C scanner if unsure)
+  → Check power is reaching OLED (3.3V on VCC pin)
+
+Issue: Touch sensor not responding
+  → Verify GPIO1 is connected to sensor I/O
+  → Check voltage on GPIO1 toggles on touch (use multimeter)
+  → Try pressing harder or adding humidity to finger
+
+Issue: I2C communication errors
+  → Add 4.7 kΩ pull-up resistors on SDA/SCL to 3.3V
+  → Shorten I2C wires if longer than 1 meter
+  → Check no other devices on I2C bus
+
+
+FIRMWARE CONFIGURATION:
+═════════════════════════════════════════════════════════════════════════════
+
+Default pin assignments (in src/main.cpp):
+
+    TOUCH_PIN = 1       (GPIO1 for touch sensor)
+    SDA_PIN = 20        (GPIO20 for I2C data)
+    SCL_PIN = 21        (GPIO21 for I2C clock)
+
+To use different pins, edit main.cpp and rebuild:
+
+    #define TOUCH_PIN 2     // New touch pin
+    #define SDA_PIN 8       // New I2C data pin
+    #define SCL_PIN 9       // New I2C clock pin
+
+NOT AVAILABLE FOR REASSIGNMENT:
+    • RX (GPIO3) - Serial RX
+    • TX (GPIO4) - Serial TX
+    • GPIO0 - BOOT pin (connected to button)
+    • GPIO2 - Strapping pin
+    • GPIO8, GPIO9 - Reserved for flash
+
+
+API ENDPOINTS (After WiFi Setup):
+═════════════════════════════════════════════════════════════════════════════
+
+    http://smartclock-c3.local/api/v1/device/status     (GET)
+    http://smartclock-c3.local/api/v1/device/settings   (GET/POST)
+    http://smartclock-c3.local/api/v1/firmware/latest   (GET)
+    http://smartclock-c3.local/api/v1/firmware/ota      (POST)
+    http://smartclock-c3.local/api/v1/device/reboot     (POST)
+
+
+SERIAL MONITOR (115200 baud):
+═════════════════════════════════════════════════════════════════════════════
+
+Expected startup output:
+
+    =================================
+    SmartClock ESP32-C3 Firmware
+    Version: 2.0.0
+    =================================
+    OLED display initialized successfully
+    Touch sensor initialized on GPIO1
+    Setting up WiFi...
+    Starting WiFi setup mode...
+    Setup WiFi: SmartClock-Setup | setup123
+    Visit: http://192.168.4.1
+
+This confirms:
+    ✓ Firmware loaded
+    ✓ OLED working (or would error here)
+    ✓ Touch sensor ready
+    ✓ WiFi starting
+
+
+QUICK TEST PROCEDURE:
+═════════════════════════════════════════════════════════════════════════════
+
+1. Build firmware:
+   $ pio run -e esp32c3
+
+2. Flash to device:
+   $ pio run -e esp32c3 -t upload
+
+3. Monitor serial:
+   $ pio device monitor -b 115200
+
+4. Verify startup message (see above)
+
+5. Test OLED:
+   - Should see time/date on display
+   - Updates every 500ms
+
+6. Test touch:
+   - Press touch sensor on GPIO1
+   - Display should briefly invert
+   - Serial monitor shows "Touch detected"
+
+7. Test WiFi:
+   - Find "SmartClock-Setup" WiFi AP
+   - Connect with password "setup123"
+   - Visit 192.168.4.1 to configure
+
+
+REFERENCE LINKS:
+═════════════════════════════════════════════════════════════════════════════
+
+    Hardware Setup Guide:
+    → /public/firmware/HARDWARE_SETUP.md
+
+    Quick Start Guide:
+    → /public/firmware/QUICK_START.md
+
+    Build Instructions:
+    → /public/firmware/BUILDING.md
+
+    API Documentation:
+    → Visit http://smartclock-c3.local/docs after setup
+
+    GitHub Repository:
+    → Check releases for latest firmware
+
+
+SAFETY WARNINGS:
+═════════════════════════════════════════════════════════════════════════════
+
+    ⚠️  Maximum GPIO voltage: 3.3V (not 5V compatible!)
+    ⚠️  Do not exceed 3.3V on any input pin
+    ⚠️  Do not reverse polarity on power connections
+    ⚠️  Do not disconnect USB during firmware flash
+    ⚠️  Use quality USB cable with data pins
+    ⚠️  Avoid static discharge when handling components
+
+
+═════════════════════════════════════════════════════════════════════════════
+
+Last Updated: 2025-01-15
+Firmware Version: 2.0.0
+Hardware: ESP32-C3 Super Mini
+Display: SSD1306 OLED 128x64 I2C
+Touch: GPIO1 Capacitive Sensor
+
+═════════════════════════════════════════════════════════════════════════════
