@@ -99,9 +99,22 @@ export default function FlasherComponent({ onDeviceConnected, onDeviceInfo }: Fl
       const { Transport, ESPLoader } = esptoolRef.current;
 
       // Get the serial port
-      const port = await navigator.serial.requestPort({});
+      let port;
+      try {
+        port = await navigator.serial.requestPort({});
+      } catch (portErr: any) {
+        if (portErr.name === 'NotFoundError' || portErr.message?.includes('No port selected')) {
+          alert('No port selected. Please select a port to connect to your device.');
+          setMessage('');
+          return;
+        }
+        throw portErr;
+      }
+      
       if (!port) {
-        throw new Error('No device selected');
+        alert('No port selected. Please select a port to connect to your device.');
+        setMessage('');
+        return;
       }
 
       console.log('[v1] Requesting port access...');
